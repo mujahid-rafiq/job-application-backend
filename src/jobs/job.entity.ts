@@ -1,33 +1,27 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('jobs')
 export class Job {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @IsNotEmpty({message:"Full Name is Required"})
-  @IsString()
+  @Column()
   fullName: string;
+
    
-  @IsNotEmpty({message:'Email is Required'})
-  @IsString()
+  @Column()
   email: string;
 
-  @IsNotEmpty({message:'Phone is Required'})
-  @IsString()
+  @Column()
   phone: string;
 
-  @IsNotEmpty({message:'Position is Not Empty'})
-  @IsString()
+  @Column()
   position: string;
 
-  @IsOptional()
-  @IsString()
+  @Column({ nullable: true })
   experience: string;
 
-  @IsOptional()
-  @IsString()
+  @Column({ type: 'text', nullable: true })
   coverLetter: string;
 
   @CreateDateColumn()

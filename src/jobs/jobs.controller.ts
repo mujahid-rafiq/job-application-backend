@@ -5,7 +5,8 @@ import {
   Get,
   Param,
   Delete,
-  Patch,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { Job } from './job.entity';
@@ -16,17 +17,23 @@ export class JobsController {
   constructor(private jobsService: JobsService) {}
 
   @Post('apply')
-  create(@Body() createDto:CreateJobDto) {
-    return this.jobsService.create(createDto);
+  async create(@Body() createDto: CreateJobDto): Promise<Job> {
+    return await this.jobsService.create(createDto);
   }
 
   @Get()
-  getAll() {
-    return this.jobsService.getAll();
+  async getAll(): Promise<Job[]> {
+    return await this.jobsService.getAll();
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.jobsService.getById(Number(id));
+  async getById(@Param('id') id: string): Promise<Job | null> {
+    return await this.jobsService.getById(Number(id));
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(@Param('id') id: string): Promise<void> {
+    return await this.jobsService.delete(Number(id));
   }
 }
