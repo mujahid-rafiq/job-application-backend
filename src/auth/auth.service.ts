@@ -1,50 +1,53 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import { User } from './user.entity';
+import { MailerService } from '@nestjs-modules/mailer';
+import { User, UserDocument } from './schemas/user.schema';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepo: Repository<User>,
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
     private jwtService: JwtService,
     private mailerService: MailerService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto) {
-    const existing = await this.userRepo.findOne({ where: { email: dto.email } });
+    const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) {
       throw new ConflictException('Email already registered');
     }
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = this.userRepo.create({
-      email: dto.email,
+    const user = new this.userModel({
+      ...dto,
       password: hashedPassword,
     });
-    await this.userRepo.save(user);
+    await user.save();
 
+    // Send welcome email
     try {
       await this.mailerService.sendMail({
         to: user.email,
-        subject: 'Welcome – Your account has been created',
-        text: `Hi,\n\nYour account has been created successfully. You can now log in with this email.\n\nThanks.`,
-        html: `<p>Hi,</p><p>Your account has been created successfully. You can now log in with this email.</p><p>Thanks.</p>`,
+        subject: 'Welcome to Job Application Portal',
+        text: `Hello ${user.firstName || 'User'},\n\nWelcome to our platform! Your account has been successfully created.`,
+        html: `<p>Hello ${user.firstName || 'User'},</p><p>Welcome to our platform! Your account has been successfully created.</p>`,
       });
-    } catch {
-      // Don't fail registration if email fails (e.g. wrong SMTP config)
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // We don't throw error here to not block registration if email fails
     }
 
     return { message: 'User registered successfully' };
   }
 
+
   async login(dto: LoginDto) {
-    const user = await this.userRepo.findOne({ where: { email: dto.email } });
+    const user = await this.userModel.findOne({ email: dto.email });
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -52,8 +55,17 @@ export class AuthService {
     if (!isMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user._id, email: user.email };
     const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
+    return {
+      accessToken,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
+    };
   }
 }
+
