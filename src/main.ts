@@ -25,6 +25,7 @@ async function bootstrap() {
     .setTitle('Job Application API')
     .setDescription('API for job applications')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);

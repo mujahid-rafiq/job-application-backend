@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JobsModule } from './jobs/jobs.module';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -14,7 +16,10 @@ import { JobsModule } from './jobs/jobs.module';
       process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/job_application',
     ),
 
-    JobsModule
+    AuthModule,
+    JobsModule,
+    MailModule
   ],
 })
 export class AppModule { }
+
