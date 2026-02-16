@@ -4,6 +4,9 @@ import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../users/enums/role.enums';
 
 @ApiTags('jobs')
 @ApiBearerAuth()
@@ -11,7 +14,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class JobsController {
     constructor(private readonly jobsService: JobsService) { }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Post()
     create(@Body() createJobDto: CreateJobDto) {
         return this.jobsService.create(createJobDto);
@@ -27,13 +31,15 @@ export class JobsController {
         return this.jobsService.findById(id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Patch(':id')
     update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
         return this.jobsService.update(id, updateJobDto);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.jobsService.delete(id);
