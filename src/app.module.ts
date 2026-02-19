@@ -1,22 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { JobsModule } from './jobs/jobs.module';
-import { AuthModule } from './auth/auth.module';
-import { MailModule } from './mail/mail.module';
-import { ChatGateway } from './chat/chat.gateway';
+import configuration from './config/configuration';
+import { DatabaseModule } from './database/database.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './modules/mail/mail.module';
+import { ChatGateway } from './modules/chat/chat.gateway';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [configuration],
     }),
-
-    // MongoDB connection
-    MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/job_application',
-    ),
-
+    DatabaseModule,
     AuthModule,
     JobsModule,
     MailModule
@@ -24,4 +21,3 @@ import { ChatGateway } from './chat/chat.gateway';
   providers: [ChatGateway],
 })
 export class AppModule { }
-

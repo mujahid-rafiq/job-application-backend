@@ -2,13 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { config } from './config';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('port', 3000);
+  const corsOrigins = configService.get<string[]>('cors.origins');
 
   app.enableCors({
-    origin: config.corsOrigins,
+    origin: corsOrigins,
     credentials: true,
   });
 
@@ -30,8 +33,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(config.port);
-  console.log(`🚀 Application is running on: http://localhost:${config.port}`);
-  console.log(`📚 Swagger UI: http://localhost:${config.port}/api`);
+  await app.listen(port);
+  console.log(`🚀 Application is running on: http://localhost:${port}`);
+  console.log(`📚 Swagger UI: http://localhost:${port}/api`);
 }
 bootstrap();
